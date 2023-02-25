@@ -39,7 +39,7 @@ This implementation is usable through the Zig package manager:
 
 ```zig
 // build.zig
-exe.addModule("zacc", b.dependency("zacc", .{}).module("zacc"));
+exe.addModule("dre", b.dependency("dre", .{}).module("dre"));
 ```
 
 To match a string with a DRE, simply call `dre.match(regex, str)`. This function will return a struct containing the `len` of the match, as well as whatever `tag` was passed last (if any).
