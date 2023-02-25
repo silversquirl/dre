@@ -2,8 +2,10 @@ const std = @import("std");
 
 pub const parser = @import("parser.zig");
 pub const ast = @import("ast.zig");
+pub const lexer = @import("lexer.zig");
 
 pub const parse = parser.parse;
+pub const Lexer = lexer.Lexer;
 
 // TODO: stream support
 pub fn match(comptime regex: []const u8, str: []const u8) ?Match(parse(regex)) {
@@ -137,6 +139,7 @@ fn tagFields(comptime expr: ast.Expr) []const std.builtin.Type.EnumField {
 
 comptime {
     std.testing.refAllDecls(parser);
+    std.testing.refAllDecls(lexer);
 }
 
 test "match - simple expression" {
