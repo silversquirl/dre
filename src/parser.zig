@@ -20,6 +20,7 @@ const Token = enum {
     @"?",
     @"*",
     @"+",
+    @".",
 
     class, // [abc0-9]
     repeat, // {3,7}
@@ -34,7 +35,7 @@ const Parser = zacc.Parser(Token,
     \\elems = elems elem | elem;
     \\elem = atom repeat | atom;
     \\repeat = '?' | '*' | '+' | .repeat;
-    \\atom = .class | .char | group;
+    \\atom = .class | '.' | .char | group;
     \\group = '(' expr ')';
 );
 
@@ -131,6 +132,9 @@ const Context = struct {
 
             .tag => .{ .tag = self.toks.tag() },
 
+            .@"." => .{ .atom = .{
+                .class = ast.not_newline,
+            } },
             .class => .{ .atom = .{
                 .class = try self.toks.class(),
             } },
@@ -144,7 +148,7 @@ const Context = struct {
 };
 
 test "parse - simple expression" {
-    const regex = "ab(c|de?<hi>)*|x[0-9yz]{2,7}";
+    const regex = "ab(c|de?<hi>)*%*|x[0-9yz]{2,7}.+";
     const expr = comptime parse(regex);
     try std.testing.expectFmt(regex, "{}", .{ast.fmtRegex(expr)});
 }
@@ -167,6 +171,7 @@ const Tokenizer = struct {
             '?' => .@"?",
             '*' => .@"*",
             '+' => .@"+",
+            '.' => .@".",
 
             '[' => while (true) {
                 switch (try self.pop()) {
@@ -195,11 +200,11 @@ const Tokenizer = struct {
             },
             '>' => .invalid,
 
-            '%' => switch (try self.pop()) {
-                '(', ')', '|', '?', '*', '+', '[', ']', '{', '}', '%' => .char,
-                // TODO: unicode escapes, hex escapes, common classes, etc
-                else => .invalid,
-            },
+            // TODO: common classes
+            '%' => if (std.mem.indexOfScalar(u8, ast.special, try self.pop()) != null)
+                .char
+            else
+                .invalid,
 
             else => |c| {
                 const len = std.unicode.utf8ByteSequenceLength(c) catch return .invalid;

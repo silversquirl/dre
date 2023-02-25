@@ -20,6 +20,14 @@ pub const Atom = union(enum) {
 };
 pub const Class = std.StaticBitSet(128); // TODO: unicode
 
+pub const not_newline = blk: {
+    var set = Class.initFull();
+    set.unset('\n');
+    set.unset('\r');
+    break :blk set;
+};
+pub const special = "()|?*+.[]{}%";
+
 pub fn fmtRegex(expr: Expr) std.fmt.Formatter(formatRegex) {
     return .{ .data = expr };
 }
@@ -30,7 +38,9 @@ fn formatRegex(expr: Expr, comptime _: []const u8, _: std.fmt.FormatOptions, w: 
         }
         for (alt.elems) |elem| {
             switch (elem.atom) {
-                .class => |cls| {
+                .class => |cls| if (cls.eql(not_newline)) {
+                    try w.writeAll(".");
+                } else {
                     try w.writeAll("[");
 
                     var it = cls.iterator(.{});
@@ -62,7 +72,12 @@ fn formatRegex(expr: Expr, comptime _: []const u8, _: std.fmt.FormatOptions, w: 
 
                     try w.writeAll("]");
                 },
-                .string => |s| try w.writeAll(s),
+                .string => |s| for (s) |c| {
+                    if (std.mem.indexOfScalar(u8, special, c) != null) {
+                        try w.writeByte('%');
+                    }
+                    try w.writeByte(c);
+                },
                 .expr => |e| try w.print("({})", .{fmtRegex(e.*)}),
             }
             if (elem.atom == .string and elem.atom.string.len != 1) {
