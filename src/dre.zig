@@ -6,7 +6,10 @@ pub const ast = @import("ast.zig");
 pub const parse = parser.parse;
 
 // TODO: stream support
-pub fn match(comptime expr: ast.Expr, str: []const u8) ?Match(expr) {
+pub fn match(comptime regex: []const u8, str: []const u8) ?Match(parse(regex)) {
+    return matchAst(parse(regex), str);
+}
+pub fn matchAst(comptime expr: ast.Expr, str: []const u8) ?Match(expr) {
     return matchExpr(Match(expr), expr, str);
 }
 inline fn matchExpr(comptime M: type, comptime expr: ast.Expr, str: []const u8) ?M {
@@ -124,7 +127,7 @@ comptime {
 }
 
 test "match - simple expression" {
-    const regex = comptime parse("ab(c|de?<hi>)*|x[yz0-9]{2,7}");
+    const regex = "ab(c|de?<hi>)*|x[yz0-9]{2,7}";
 
     {
         const m = match(regex, "abcccfoo") orelse return error.NoMatch;

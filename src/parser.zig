@@ -144,8 +144,9 @@ const Context = struct {
 };
 
 test "parse - simple expression" {
-    const expr = comptime parse("ab(c|de?<hi>)*|x[yz0-9]{2,7}");
-    std.debug.print("{}\n", .{ast.fmtRegex(expr)});
+    const regex = "ab(c|de?<hi>)*|x[0-9yz]{2,7}";
+    const expr = comptime parse(regex);
+    try std.testing.expectFmt(regex, "{}", .{ast.fmtRegex(expr)});
 }
 
 const Tokenizer = struct {
