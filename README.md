@@ -20,6 +20,10 @@ Because they generate DFAs directly rather than converting from NFAs, they avoid
 Additionally, it's immediately clear to a user how a DRE works at the machine level.
 There is no need to guess about the path taken through a DRE, because it's immediately evident in the expression itself.
 
+## Status
+
+This implementation is fairly complete, but is missing proper unicode support for character classes.
+It has also not been heavily optimized, but should be fairly performant already.
 
 ## Usage
 
@@ -51,5 +55,7 @@ The syntax for writing a DRE is similar to most other regex flavours, with a few
 
 - Special characters are escaped with `%` rather than the usual `\\`, to make writing DREs in string literals easier
 - There are no capture groups. Instead, we have "tags", which are written as `<my_tag>`, `<another>`, etc.
+
+Note that `.` is equivalent to `[^\r\n]`. To match any byte at all, use `[^]`.
 
 (TODO: comprehensive syntax reference)
