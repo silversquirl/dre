@@ -257,7 +257,7 @@ const Tokenizer = struct {
         for (cls, 0..) |c, i| {
             if (c >= 128) return error.InvalidClass; // TODO: unicode support
             if (range) {
-                set.setRangeValue(.{ .start = cls[i - 2], .end = c }, true);
+                set.setRangeValue(.{ .start = cls[i - 2], .end = c + 1 }, true);
                 range = false;
             } else if (c == '-' and i > 0 and i < cls.len - 1) {
                 range = true;

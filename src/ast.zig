@@ -42,7 +42,7 @@ fn formatRegex(expr: Expr, comptime _: []const u8, _: std.fmt.FormatOptions, w: 
                             count += 1;
                             continue;
                         } else if (count > 3) {
-                            try w.print("{c}-{c}", .{ start, start + count });
+                            try w.print("{c}-{c}", .{ start, start + count - 1 });
                         } else if (count > 0) {
                             for (start..start + count) |x| {
                                 try w.writeByte(@intCast(u7, x));
@@ -53,7 +53,7 @@ fn formatRegex(expr: Expr, comptime _: []const u8, _: std.fmt.FormatOptions, w: 
                     }
 
                     if (count > 3) {
-                        try w.print("{c}-{c}", .{ start, start + count });
+                        try w.print("{c}-{c}", .{ start, start + count - 1 });
                     } else if (count > 0) {
                         for (start..start + count) |x| {
                             try w.writeByte(@intCast(u7, x));
