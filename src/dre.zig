@@ -43,7 +43,7 @@ inline fn matchAlt(comptime M: type, comptime alt: ast.Alternative, str: []const
 inline fn matchAtom(comptime M: type, comptime atom: ast.Atom, str: []const u8) ?M {
     switch (atom) {
         .class => |c| {
-            if (!c.isSet(str[0])) {
+            if (str.len == 0 or !c.isSet(str[0])) {
                 return null;
             }
             return .{ .len = 1 };
@@ -61,20 +61,21 @@ inline fn matchAtom(comptime M: type, comptime atom: ast.Atom, str: []const u8) 
 fn checkDeterminism(comptime expr: ast.Expr) std.StaticBitSet(256) {
     comptime var set = std.StaticBitSet(256).initEmpty();
     comptime for (expr) |alt| {
+        var i: usize = 0;
         for (alt.elems) |elem| {
-            var new_set = std.StaticBitSet(256).initEmpty();
+            var alt_set = std.StaticBitSet(256).initEmpty();
             switch (elem.atom) {
                 .class => |c| {
                     var it = c.iterator(.{});
                     while (it.next()) |x| {
-                        new_set.set(x);
+                        alt_set.set(x);
                     }
                 },
-                .string => |s| new_set.set(s[0]),
-                .expr => |e| new_set = checkDeterminism(e.*),
+                .string => |s| alt_set.set(s[0]),
+                .expr => |e| alt_set = checkDeterminism(e.*),
             }
 
-            const isect = set.intersectWith(new_set);
+            const isect = set.intersectWith(alt_set);
             if (isect.count() > 0) {
                 @compileError(std.fmt.comptimePrint(
                     "Regex is not deterministic: multiple paths for '{'}' (and {} others)",
@@ -84,7 +85,19 @@ fn checkDeterminism(comptime expr: ast.Expr) std.StaticBitSet(256) {
                     },
                 ));
             }
-            set.setUnion(new_set);
+            set.setUnion(alt_set);
+
+            i += 1;
+
+            if (elem.repeat.min > 0) {
+                break;
+            }
+        }
+
+        for (alt.elems[i..]) |elem| {
+            if (elem.atom == .expr) {
+                _ = checkDeterminism(elem.atom.expr.*);
+            }
         }
     };
     return set;
@@ -139,4 +152,11 @@ test "match - simple expression" {
         try std.testing.expectEqual(@as(usize, 11), m.len);
         try std.testing.expect(m.tag != null and m.tag.? == .hi);
     }
+}
+
+test "match - determinism" {
+    const regex = "[ab][ab]*";
+
+    const m = match(regex, "abab") orelse return error.NoMatch;
+    try std.testing.expectEqual(@as(usize, 4), m.len);
 }
