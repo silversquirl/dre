@@ -160,3 +160,13 @@ test "match - determinism" {
     const m = match(regex, "abab") orelse return error.NoMatch;
     try std.testing.expectEqual(@as(usize, 4), m.len);
 }
+
+test "match - escapes" {
+    const regex = "%*%?[^%]]";
+
+    {
+        const m = match(regex, "*?3") orelse return error.NoMatch;
+        try std.testing.expectEqual(@as(usize, 3), m.len);
+    }
+    try std.testing.expect(match(regex, "*?]") == null);
+}

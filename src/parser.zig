@@ -170,7 +170,7 @@ const Tokenizer = struct {
 
             '[' => while (true) {
                 switch (try self.pop()) {
-                    '\\' => _ = try self.pop(),
+                    '%' => _ = try self.pop(),
                     ']' => break .class,
                     else => {},
                 }
@@ -195,8 +195,8 @@ const Tokenizer = struct {
             },
             '>' => .invalid,
 
-            '\\' => switch (try self.pop()) {
-                '(', ')', '|', '?', '*', '+', '[', ']', '{', '}', '\\' => .char,
+            '%' => switch (try self.pop()) {
+                '(', ')', '|', '?', '*', '+', '[', ']', '{', '}', '%' => .char,
                 // TODO: unicode escapes, hex escapes, common classes, etc
                 else => .invalid,
             },
@@ -272,7 +272,7 @@ const Tokenizer = struct {
 
     fn char(self: Tokenizer) ![]const u8 {
         const s = self.str();
-        if (s[0] == '\\') {
+        if (s[0] == '%') {
             std.debug.assert(s.len == 2);
             return s[1..];
         }
