@@ -1,0 +1,10 @@
+.{
+    .name = "dre",
+    .version = "0.1.0-dev",
+    .dependencies = .{
+        .zacc = .{
+            .url = "https://github.com/silversquirl/zacc/archive/12d2fbc2dfb8978b5cc906e736188f6e8f722691.tar.gz",
+            .hash = "12206b20b62d6b04a5dd54f961a99510c2313a498970b52677eee84a0f40a406c144",
+        },
+    },
+}
